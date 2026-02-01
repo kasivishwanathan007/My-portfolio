@@ -287,6 +287,25 @@ var owlSingleSlider = function () {
 	}
 }
 
+// Cursor Glow Positioning
+document.addEventListener('mousemove', (e) => {
+	const glow = document.querySelector('.cursor-glow');
+	if (glow) {
+		glow.style.left = e.clientX + 'px';
+		glow.style.top = e.clientY + 'px';
+	}
+});
+
+// Scale glow on hoverable items
+document.querySelectorAll('a, button, .portfolio-item').forEach(link => {
+	link.addEventListener('mouseenter', () => {
+		document.querySelector('.cursor-glow')?.classList.add('active');
+	});
+	link.addEventListener('mouseleave', () => {
+		document.querySelector('.cursor-glow')?.classList.remove('active');
+	});
+});
+
 var floatingLabel = function () {
 	$('.form-control').on('input', function() {
 	  var $field = $(this).closest('.form-group');

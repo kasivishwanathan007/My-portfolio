@@ -691,4 +691,74 @@ function closeModal() {
   document.getElementById("certModal").style.display = "none";
 }
 
+// ============================================
+// ANIMATED SKILL PROGRESS RINGS
+// ============================================
+function animateSkillRings() {
+  const skillRings = document.querySelectorAll('.skill-ring');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const ring = entry.target;
+        const progress = ring.dataset.progress;
+        const percentNum = ring.querySelector('.percent-num');
+        
+        // Add animated class to trigger CSS animation
+        ring.classList.add('animated');
+        
+        // Animate the number counting
+        let currentNum = 0;
+        const duration = 1500;
+        const increment = progress / (duration / 16);
+        
+        const countUp = setInterval(() => {
+          currentNum += increment;
+          if (currentNum >= progress) {
+            currentNum = progress;
+            clearInterval(countUp);
+          }
+          percentNum.textContent = Math.round(currentNum);
+        }, 16);
+        
+        // Unobserve after animation
+        observer.unobserve(ring);
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  skillRings.forEach(ring => observer.observe(ring));
+}
 
+// ============================================
+// BACK TO TOP BUTTON
+// ============================================
+function initBackToTop() {
+  const backToTopBtn = document.getElementById('back-to-top');
+  
+  if (!backToTopBtn) return;
+  
+  // Show/hide button based on scroll position
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) {
+      backToTopBtn.classList.add('visible');
+    } else {
+      backToTopBtn.classList.remove('visible');
+    }
+  });
+  
+  // Smooth scroll to top
+  backToTopBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  animateSkillRings();
+  initBackToTop();
+});
