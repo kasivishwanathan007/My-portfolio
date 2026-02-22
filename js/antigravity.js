@@ -8,12 +8,27 @@ class Antigravity {
         this.nodes = [];
         this.mouse = { x: 0, y: 0, active: false };
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.isSmallScreen = window.innerWidth < 992;
+        this.isDisabled = this.isMobile || this.isSmallScreen;
 
-        if (this.isMobile) return;
+        if (this.isDisabled) return;
 
         this.init();
         this.bindEvents();
         this.animate();
+
+        // Listen for resize to disable on mobile widths
+        window.addEventListener('resize', () => {
+            this.isSmallScreen = window.innerWidth < 992;
+            if (this.isSmallScreen && !this.isDisabled) {
+                this.isDisabled = true;
+                // Reset all transforms when switching to mobile
+                this.nodes.forEach(node => {
+                    node.element.style.transform = '';
+                    node.element.style.boxShadow = '';
+                });
+            }
+        });
     }
 
     init() {
@@ -103,13 +118,29 @@ class Antigravity {
         });
 
         // High-end Hero Parallax (Subtle Depth)
-        const heroItems = document.querySelectorAll('.gsap-reveal-hero');
-        heroItems.forEach(item => {
-            const factor = item.tagName === 'H1' ? 0.015 : 0.01;
-            const hx = (this.mouse.x - window.innerWidth / 2) * factor;
-            const hy = (this.mouse.y - window.innerHeight / 2) * factor;
-            item.style.transform = `translate3d(${hx}px, ${hy}px, 0)`;
-        });
+        // Only apply parallax after the GSAP reveal animation has finished (~3s after load)
+        if (typeof this._heroReady === 'undefined') {
+            this._heroReady = false;
+            setTimeout(() => { this._heroReady = true; }, 3500);
+        }
+        if (this._heroReady) {
+            const heroItems = document.querySelectorAll('.gsap-reveal-hero');
+            heroItems.forEach(item => {
+                // Only apply parallax if the reveal-content's transform has been cleared
+                const revealContent = item.querySelector('.reveal-content');
+                if (revealContent) {
+                    const computedTransform = window.getComputedStyle(revealContent).transform;
+                    // If the content is still translated off-screen, skip parallax
+                    if (computedTransform && computedTransform !== 'none' && computedTransform !== 'matrix(1, 0, 0, 1, 0, 0)') {
+                        return;
+                    }
+                }
+                const factor = item.tagName === 'H1' ? 0.015 : 0.01;
+                const hx = (this.mouse.x - window.innerWidth / 2) * factor;
+                const hy = (this.mouse.y - window.innerHeight / 2) * factor;
+                item.style.transform = `translate3d(${hx}px, ${hy}px, 0)`;
+            });
+        }
 
         requestAnimationFrame(() => this.animate());
     }
